@@ -1,0 +1,1316 @@
+``html
+<!DOCTYPE html>
+<html lang="si"> <!-- භාෂාව සිංහල ලෙස වෙනස් කරන ලදී -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>අනුර ටේලර් - සුඛෝපභෝගී ඇඳුම් මැසීම</title>
+    <!-- External Libraries (බාහිර લાઇబ్రරි) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Google Fonts (ගූගල් ෆොන්ට්ස්) */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            scroll-behavior: smooth; /* Smooth scrolling (සුමටව ස්ක්‍රෝල් වීම) */
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .playfair {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        /* Glassmorphism effects (වීදුරු ඉෆෙක්ට්) */
+        .glass {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-dark {
+            backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Gradient text styles (වර්ණไล่ පාඨ) */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .gradient-gold {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-bg {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        
+        /* Floating animation (පාවෙන සජීවීකරණය) */
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        /* Hover effect for cards (කාඩ්පත් සඳහා හෝවර් ඉෆෙක්ට්) */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .parallax-bg {
+            will-change: transform;
+        }
+        
+        .morphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Loading spinner (ලෝඩ් වන සජීවීකරණය) */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        #threejs-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        /* Interactive card flip effect (කාඩ්පත් පෙරළෙන ඉෆෙක්ට්) */
+        .interactive-card {
+            perspective: 1000px;
+        }
+        
+        .card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .interactive-card:hover .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .card-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation (මෙනු තීරුව) -->
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 glass">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold playfair gradient-text">
+                    අනුර ටේලර්
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link text-white hover:text-yellow-400 transition-colors">මුල් පිටුව</a>
+                    <a href="#services" class="nav-link text-white hover:text-yellow-400 transition-colors">සේවාවන්</a>
+                    <a href="#portfolio" class="nav-link text-white hover:text-yellow-400 transition-colors">නිර්මාණ එකතුව</a>
+                    <a href="#process" class="nav-link text-white hover:text-yellow-400 transition-colors">ක්‍රියාවලිය</a>
+                    <a href="#testimonials" class="nav-link text-white hover:text-yellow-400 transition-colors">පාරිභෝගික අදහස්</a>
+                    <a href="#contact" class="nav-link text-white hover:text-yellow-400 transition-colors">සම්බන්ධ වන්න</a>
+                </div>
+                <button id="mobile-menu" class="md:hidden text-white">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu (ජංගම දුරකථන සඳහා මෙනුව) -->
+    <div id="mobile-nav" class="fixed inset-0 z-40 transform translate-x-full transition-transform duration-300 md:hidden">
+        <div class="glass-dark h-full w-full flex flex-col justify-center items-center space-y-8">
+            <a href="#home" class="mobile-nav-link text-white text-2xl hover:text-yellow-400 transition-colors">මුල් පිටුව</a>
+            <a href="#services" class="mobile-nav-link text-white text-2xl hover:text-yellow-400 transition-colors">සේවාවන්</a>
+            <a href="#portfolio" class="mobile-nav-link text-white text-2xl hover:text-yellow-400 transition-colors">නිර්මාණ එකතුව</a>
+            <a href="#process" class="mobile-nav-link text-white text-2xl hover:text-yellow-400 transition-colors">ක්‍රියාවලිය</a>
+            <a href="#testimonials" class="mobile-nav-link text-white text-2xl hover:text-yellow-400 transition-colors">පාරිභෝගික අදහස්</a>
+            <a href="#contact" class="mobile-nav-link text-white text-2xl hover:text-yellow-400 transition-colors">සම්බන්ධ වන්න</a>
+        </div>
+    </div>
+
+    <!-- Hero Section (ප්‍රධාන කොටස) -->
+    <section id="home" class="relative min-h-screen flex items-center justify-center hero-bg overflow-hidden">
+        <canvas id="threejs-canvas"></canvas>
+        <div id="p5-canvas" class="absolute inset-0 z-10"></div>
+        
+        <div class="relative z-20 text-center text-white px-6 max-w-6xl mx-auto">
+            <h1 class="text-6xl md:text-8xl font-bold playfair mb-6 text-shadow floating">
+                අනුර ටේලර්
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 font-light max-w-3xl mx-auto opacity-90">
+                සෑම මැස්මකම විශිෂ්ටත්වය ගොඩනගමින්. උසස් මංගල කෝට්, ඇණවුමට සකසන සූට් සහ සුඛෝපභෝගී ඇඳුම් මැසීම.
+            </p>
+            
+            <div class="flex flex-col md:flex-row gap-6 justify-center items-center mb-12">
+                <button class="hero-btn bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-semibold px-8 py-4 rounded-full hover:scale-105 transition-all duration-300 glow">
+                    <i class="fas fa-calendar-alt mr-2"></i>
+                    උපදේශනයක් වෙන්කරවා ගන්න
+                </button>
+                <button class="hero-btn glass text-white font-semibold px-8 py-4 rounded-full hover:scale-105 transition-all duration-300">
+                    <i class="fas fa-play mr-2"></i>
+                    අපේ කතාව නරඹන්න
+                </button>
+            </div>
+            
+            <!-- Stats (සංඛ්‍යා ලේඛන) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+                <div class="text-center">
+                    <div class="text-3xl font-bold gradient-gold counter" data-target="15">0</div>
+                    <div class="text-sm opacity-80">වසරක පළපුරුද්ද</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold gradient-gold counter" data-target="2500">0</div>
+                    <div class="text-sm opacity-80">සතුටු සේවාදායකයින්</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold gradient-gold counter" data-target="150">0</div>
+                    <div class="text-sm opacity-80">මංගල කෝට්</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold gradient-gold counter" data-target="98">0</div>
+                    <div class="text-sm opacity-80">% තෘප්තිමත්භාවය</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scroll Indicator (ස්ක්‍රෝල් කිරීමේ දර්ශකය) -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white">
+            <div class="animate-bounce">
+                <i class="fas fa-chevron-down text-2xl"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section (සේවා කොටස) -->
+    <section id="services" class="py-20 bg-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-5">
+            <div class="absolute top-10 left-10 w-64 h-64 bg-blue-500 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-10 right-10 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold playfair gradient-text mb-6">අපගේ විශේෂිත සේවාවන්</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    ඔබේ විවාහ දිනයේ පරිපූර්ණත්වයේ සිට දෛනික අලංකාරය දක්වා, අපි ඔබේ කතාව පවසන ඇඳුම් නිර්මාණය කරමු.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Wedding Coats (මංගල කෝට්) -->
+                <div class="service-card interactive-card h-80 relative">
+                    <div class="card-inner h-full">
+                        <div class="card-front bg-gradient-to-br from-blue-600 to-purple-700 p-8 rounded-2xl text-white h-full flex flex-col justify-between">
+                            <div>
+                                <i class="fas fa-user-tie text-4xl mb-4"></i>
+                                <h3 class="text-2xl font-bold playfair mb-2">මංගල කෝට්</h3>
+                                <p class="text-blue-100">ඔබගේ විශේෂ දිනය සඳහා සුඛෝපභෝගී මංගල කෝට්</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-2xl font-bold">රු. 15,000 සිට</span>
+                            </div>
+                        </div>
+                        <div class="card-back bg-white p-8 rounded-2xl border h-full flex flex-col justify-between shadow-xl">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">මංගල කෝට් වල විශේෂාංග</h3>
+                                <ul class="space-y-2 text-gray-600">
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>උසස් තත්ත්වයේ සේද ලයිනිං</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>අතින් මසන ලද ලැපල්</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>කස්ටම් එම්බ්‍රොයිඩරි</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>නියමිත මිනුමට සරිලන බවට සහතිකය</li>
+                                </ul>
+                            </div>
+                            <button class="bg-gradient-to-r from-blue-600 to-purple-700 text-white px-6 py-3 rounded-lg hover:scale-105 transition-all">
+                                දැන් වෙන්කරවා ගන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formal Shirts (කාර්යාලීය කමිස) -->
+                <div class="service-card interactive-card h-80 relative">
+                    <div class="card-inner h-full">
+                        <div class="card-front bg-gradient-to-br from-green-600 to-teal-700 p-8 rounded-2xl text-white h-full flex flex-col justify-between">
+                            <div>
+                                <i class="fas fa-shirt text-4xl mb-4"></i>
+                                <h3 class="text-2xl font-bold playfair mb-2">කාර්යාලීය කමිස</h3>
+                                <p class="text-green-100">සෑම අවස්ථාවක් සඳහාම වෘත්තීය පෙනුමක් දෙන කමිස</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-2xl font-bold">රු. 3,500 සිට</span>
+                            </div>
+                        </div>
+                        <div class="card-back bg-white p-8 rounded-2xl border h-full flex flex-col justify-between shadow-xl">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">කමිස වල විශේෂාංග</h3>
+                                <ul class="space-y-2 text-gray-600">
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>ඊජිප්තු කපු රෙදි</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>ප්‍රංශ ක්‍රමයට මැසූ මැහුම්</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>Mother of pearl බොත්තම්</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>නම කොටා දීමේ සේවාව</li>
+                                </ul>
+                            </div>
+                            <button class="bg-gradient-to-r from-green-600 to-teal-700 text-white px-6 py-3 rounded-lg hover:scale-105 transition-all">
+                                දැන් වෙන්කරවා ගන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suits & Blazers (සූට් සහ බ්ලේසර්) -->
+                <div class="service-card interactive-card h-80 relative">
+                    <div class="card-inner h-full">
+                        <div class="card-front bg-gradient-to-br from-orange-600 to-red-700 p-8 rounded-2xl text-white h-full flex flex-col justify-between">
+                            <div>
+                                <i class="fas fa-vest text-4xl mb-4"></i>
+                                <h3 class="text-2xl font-bold playfair mb-2">සූට් සහ බ්ලේසර්</h3>
+                                <p class="text-orange-100">ව්‍යාපාරික සහ උත්සව අවස්ථා සඳහා සම්පූර්ණ සූට්</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-2xl font-bold">රු. 25,000 සිට</span>
+                            </div>
+                        </div>
+                        <div class="card-back bg-white p-8 rounded-2xl border h-full flex flex-col justify-between shadow-xl">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">සූට් වල විශේෂාංග</h3>
+                                <ul class="space-y-2 text-gray-600">
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>ඉතාලියානු වුල් රෙදි</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>කැන්වස් නිර්මාණය</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>ක්‍රියාකාරී බොත්තම් සිදුරු</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>ජීවිත කාලයටම ගැලපීම්</li>
+                                </ul>
+                            </div>
+                            <button class="bg-gradient-to-r from-orange-600 to-red-700 text-white px-6 py-3 rounded-lg hover:scale-105 transition-all">
+                                දැන් වෙන්කරවා ගන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trousers (කලිසම්) -->
+                <div class="service-card interactive-card h-80 relative">
+                    <div class="card-inner h-full">
+                        <div class="card-front bg-gradient-to-br from-purple-600 to-pink-700 p-8 rounded-2xl text-white h-full flex flex-col justify-between">
+                            <div>
+                                <i class="fas fa-user-friends text-4xl mb-4"></i>
+                                <h3 class="text-2xl font-bold playfair mb-2">කලිසම්</h3>
+                                <p class="text-purple-100">සෑම අවස්ථාවක් සඳහාම කදිමට ගැලපෙන කලිසම්</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-2xl font-bold">රු. 2,800 සිට</span>
+                            </div>
+                        </div>
+                        <div class="card-back bg-white p-8 rounded-2xl border h-full flex flex-col justify-between shadow-xl">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">කලිසම් වල විශේෂාංග</h3>
+                                <ul class="space-y-2 text-gray-600">
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>උසස් තත්ත්වයේ රෙදි</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>විශාල ප්‍රමාණ වලින්</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>විවිධ මෝස්තර වලින්</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>ඉක්මන් වෙනස්කම්</li>
+                                </ul>
+                            </div>
+                            <button class="bg-gradient-to-r from-purple-600 to-pink-700 text-white px-6 py-3 rounded-lg hover:scale-105 transition-all">
+                                දැන් වෙන්කරවා ගන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alterations (වෙනස්කම් කිරීම) -->
+                <div class="service-card interactive-card h-80 relative">
+                    <div class="card-inner h-full">
+                        <div class="card-front bg-gradient-to-br from-indigo-600 to-blue-700 p-8 rounded-2xl text-white h-full flex flex-col justify-between">
+                            <div>
+                                <i class="fas fa-cut text-4xl mb-4"></i>
+                                <h3 class="text-2xl font-bold playfair mb-2">වෙනස්කම් කිරීම</h3>
+                                <p class="text-indigo-100">නියමිත මිනුමට සරිලන සේ වෙනස්කම් කිරීම</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-2xl font-bold">රු. 500 සිට</span>
+                            </div>
+                        </div>
+                        <div class="card-back bg-white p-8 rounded-2xl border h-full flex flex-col justify-between shadow-xl">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">වෙනස්කම් කිරීමේ සේවා</h3>
+                                <ul class="space-y-2 text-gray-600">
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>එකම දින සේවාව</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>සියලුම ඇඳුම් වර්ග සඳහා</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>ප්‍රමාණය ගැලපීම්</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>මෝස්තර වෙනස් කිරීම</li>
+                                </ul>
+                            </div>
+                            <button class="bg-gradient-to-r from-indigo-600 to-blue-700 text-white px-6 py-3 rounded-lg hover:scale-105 transition-all">
+                                දැන් වෙන්කරවා ගන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Design (කස්ටම් නිර්මාණ) -->
+                <div class="service-card interactive-card h-80 relative">
+                    <div class="card-inner h-full">
+                        <div class="card-front bg-gradient-to-br from-yellow-600 to-orange-700 p-8 rounded-2xl text-white h-full flex flex-col justify-between">
+                            <div>
+                                <i class="fas fa-pencil-ruler text-4xl mb-4"></i>
+                                <h3 class="text-2xl font-bold playfair mb-2">කස්ටම් නිර්මාණ</h3>
+                                <p class="text-yellow-100">ඔබේ සිහින නිර්මාණ යථාර්ථයක් බවට පත් කිරීම</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xl font-bold">මිල ගණන් විමසන්න</span>
+                            </div>
+                        </div>
+                        <div class="card-back bg-white p-8 rounded-2xl border h-full flex flex-col justify-between shadow-xl">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">කස්ටම් නිර්මාණ වල විශේෂාංග</h3>
+                                <ul class="space-y-2 text-gray-600">
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>පෞද්ගලික උපදේශනය</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>නිර්මාණ සිතියම්</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>උසස් තත්ත්වයේ අමුද්‍රව්‍ය</li>
+                                    <li><i class="fas fa-check text-green-500 mr-2"></i>අසීමිත සංශෝධන</li>
+                                </ul>
+                            </div>
+                            <button class="bg-gradient-to-r from-yellow-600 to-orange-700 text-white px-6 py-3 rounded-lg hover:scale-105 transition-all">
+                                දැන් උපදේශනයක් ගන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section (ක්‍රියාවලි කොටස) -->
+    <section id="process" class="py-20 bg-gray-100 relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold playfair gradient-text mb-6">අපගේ නිර්මාණ ක්‍රියාවලිය</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    උපදේශනයේ සිට නිමාව දක්වා, අපගේ සූක්ෂම අවධානය අත්විඳින්න.
+                </p>
+            </div>
+            
+            <div class="relative">
+                <!-- Process Timeline (ක්‍රියාවලි කාලරේඛාව) -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+                
+                <div class="space-y-16">
+                    <!-- Step 1 (පියවර 1) -->
+                    <div class="flex items-center process-step">
+                        <div class="flex-1 text-right pr-8">
+                            <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                                <h3 class="text-2xl font-bold playfair mb-4 text-blue-600">උපදේශනය</h3>
+                                <p class="text-gray-600">ඔබේ මෝස්තරය, කැමැත්ත සහ අවස්ථාවට ගැලපෙන අවශ්‍යතා තේරුම් ගැනීමට පෞද්ගලික හමුවක්. අපි රෙදි, වර්ණ, සහ නිර්මාණ අංග සාකච්ඡා කරමු.</p>
+                            </div>
+                        </div>
+                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-bold relative z-10">
+                            1
+                        </div>
+                        <div class="flex-1 pl-8"></div>
+                    </div>
+                    
+                    <!-- Step 2 (පියවර 2) -->
+                    <div class="flex items-center process-step">
+                        <div class="flex-1 pr-8"></div>
+                        <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold relative z-10">
+                            2
+                        </div>
+                        <div class="flex-1 text-left pl-8">
+                            <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                                <h3 class="text-2xl font-bold playfair mb-4 text-purple-600">මිනුම් ගැනීම</h3>
+                                <p class="text-gray-600">සාම්ප්‍රදායික සහ නවීන ක්‍රම භාවිතා කරමින් නිරවද්‍ය මිනුම් ගැනීම. බහුවිධ මිනුම් ස්ථාන මගින් පරිපූර්ණ අනුපාතයන් සහතික කෙරේ.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3 (පියවර 3) -->
+                    <div class="flex items-center process-step">
+                        <div class="flex-1 text-right pr-8">
+                            <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                                <h3 class="text-2xl font-bold playfair mb-4 text-green-600">නිර්මාණය සහ රටා සැකසීම</h3>
+                                <p class="text-gray-600">කස්ටම් රටා සහ නිර්මාණ සැලසුම් නිර්මාණය කිරීම. සෑම කොටසක්ම ඔබේ ශරීරයට සහ මෝස්තරයට අනන්‍ය ලෙස නිර්මාණය කෙරේ.</p>
+                            </div>
+                        </div>
+                        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-xl font-bold relative z-10">
+                            3
+                        </div>
+                        <div class="flex-1 pl-8"></div>
+                    </div>
+                    
+                    <!-- Step 4 (පියවර 4) -->
+                    <div class="flex items-center process-step">
+                        <div class="flex-1 pr-8"></div>
+                        <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white text-xl font-bold relative z-10">
+                            4
+                        </div>
+                        <div class="flex-1 text-left pl-8">
+                            <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                                <h3 class="text-2xl font-bold playfair mb-4 text-orange-600">නිර්මාණය කිරීම</h3>
+                                <p class="text-gray-600">ප්‍රවීණ ශිල්පීන් නවීන නිරවද්‍යතාව සමඟ සාම්ප්‍රදායික ශිල්පීය ක්‍රම භාවිතා කරමින් ඔබේ ඇඳුම අතින් නිම කරයි.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5 (පියවර 5) -->
+                    <div class="flex items-center process-step">
+                        <div class="flex-1 text-right pr-8">
+                            <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                                <h3 class="text-2xl font-bold playfair mb-4 text-red-600">අවසාන ෆිටින් කිරීම</h3>
+                                <p class="text-gray-600">අවසාන ගැලපීම් සහ ගුණාත්මකභාවය පරීක්ෂා කිරීම. සෑම විස්තරයක්ම අපගේ ඉහළම ප්‍රමිතීන්ට සහ ඔබේ අපේක්ෂාවන්ට ගැලපෙන බවට අපි සහතික වෙමු.</p>
+                            </div>
+                        </div>
+                        <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-xl font-bold relative z-10">
+                            5
+                        </div>
+                        <div class="flex-1 pl-8"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section (නිර්මාණ එකතුව කොටස) -->
+    <section id="portfolio" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold playfair gradient-text mb-6">අපගේ නිර්මාණ එකතුව</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    ආශාවෙන් සහ නිරවද්‍යතාවයෙන් නිර්මාණය කරන ලද අපගේ අලංකාර ඇඳුම් එකතුව ගවේෂණය කරන්න.
+                </p>
+            </div>
+            
+            <!-- Portfolio Filter (නිර්මාණ එකතුව පෙරහන) -->
+            <div class="flex flex-wrap justify-center gap-4 mb-12">
+                <button class="portfolio-filter active bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full" data-filter="all">
+                    සියලුම නිර්මාණ
+                </button>
+                <button class="portfolio-filter bg-gray-200 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-300 transition-colors" data-filter="wedding">
+                    මංගල කෝට්
+                </button>
+                <button class="portfolio-filter bg-gray-200 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-300 transition-colors" data-filter="suits">
+                    සූට් සහ බ්ලේසර්
+                </button>
+                <button class="portfolio-filter bg-gray-200 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-300 transition-colors" data-filter="shirts">
+                    කාර්යාලීය කමිස
+                </button>
+                <button class="portfolio-filter bg-gray-200 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-300 transition-colors" data-filter="custom">
+                    කස්ටම් නිර්මාණ
+                </button>
+            </div>
+            
+            <!-- Portfolio Grid (නිර්මාණ ග්‍රිඩ් එක) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 portfolio-grid">
+                <!-- Wedding Coat 1 -->
+                <div class="portfolio-item wedding" data-category="wedding">
+                    <div class="bg-gradient-to-br from-blue-500 to-purple-600 p-8 rounded-2xl text-white h-80 flex flex-col justify-between card-hover">
+                        <div>
+                            <i class="fas fa-crown text-4xl mb-4"></i>
+                            <h3 class="text-xl font-bold playfair mb-2">රාජකීය මංගල කෝට්</h3>
+                            <p class="text-blue-100 mb-4">අතින් එම්බ්‍රොයිඩර් කරන ලද සුඛෝපභෝගී සේද මංගල කෝට්</p>
+                            <div class="flex gap-2">
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">සේද රෙදි</span>
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">එම්බ්‍රොයිඩරි</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm opacity-75">විශේෂ එකතුව</span>
+                            <button class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:scale-105 transition-all">
+                                විස්තර බලන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Business Suit -->
+                <div class="portfolio-item suits" data-category="suits">
+                    <div class="bg-gradient-to-br from-gray-700 to-gray-900 p-8 rounded-2xl text-white h-80 flex flex-col justify-between card-hover">
+                        <div>
+                            <i class="fas fa-briefcase text-4xl mb-4"></i>
+                            <h3 class="text-xl font-bold playfair mb-2">විධායක ව්‍යාපාරික සූට්</h3>
+                            <p class="text-gray-300 mb-4">කස්ටම් ලයිනිං සහිත ඉතාලියානු වුල් කොටස් තුනේ සූට්</p>
+                            <div class="flex gap-2">
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">ඉතාලියානු වුල්</span>
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">කොටස් 3</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm opacity-75">ව්‍යාපාරික එකතුව</span>
+                            <button class="bg-white text-gray-800 px-4 py-2 rounded-lg font-semibold hover:scale-105 transition-all">
+                                විස්තර බලන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Formal Shirt -->
+                <div class="portfolio-item shirts" data-category="shirts">
+                    <div class="bg-gradient-to-br from-green-500 to-teal-600 p-8 rounded-2xl text-white h-80 flex flex-col justify-between card-hover">
+                        <div>
+                            <i class="fas fa-shirt text-4xl mb-4"></i>
+                            <h3 class="text-xl font-bold playfair mb-2">උසස් තත්වයේ කමිසය</h3>
+                            <p class="text-green-100 mb-4">ප්‍රංශ අත් සහ නම සහිත ඊජිප්තු කපු කමිසය</p>
+                            <div class="flex gap-2">
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">ඊජිප්තු කපු</span>
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">නම සහිත</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm opacity-75">කාර්යාලීය එකතුව</span>
+                            <button class="bg-white text-green-600 px-4 py-2 rounded-lg font-semibold hover:scale-105 transition-all">
+                                විස්තර බලන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Wedding Coat 2 -->
+                <div class="portfolio-item wedding" data-category="wedding">
+                    <div class="bg-gradient-to-br from-purple-500 to-pink-600 p-8 rounded-2xl text-white h-80 flex flex-col justify-between card-hover">
+                        <div>
+                            <i class="fas fa-heart text-4xl mb-4"></i>
+                            <h3 class="text-xl font-bold playfair mb-2">සාම්ප්‍රදායික මංගල කෝට්</h3>
+                            <p class="text-purple-100 mb-4">නවීන මැහුම් ශිල්පීය ක්‍රම සහිත සම්භාව්‍ය නිර්මාණය</p>
+                            <div class="flex gap-2">
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">සාම්ප්‍රදායික</span>
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">අතින් නිමවූ</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm opacity-75">මංගල එකතුව</span>
+                            <button class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:scale-105 transition-all">
+                                විස්තර බලන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Custom Design -->
+                <div class="portfolio-item custom" data-category="custom">
+                    <div class="bg-gradient-to-br from-orange-500 to-red-600 p-8 rounded-2xl text-white h-80 flex flex-col justify-between card-hover">
+                        <div>
+                            <i class="fas fa-palette text-4xl mb-4"></i>
+                            <h3 class="text-xl font-bold playfair mb-2">කලාත්මක කස්ටම් බ්ලේසර්</h3>
+                            <p class="text-orange-100 mb-4">කලාත්මක අංග සහ උසස් නිමාවක් සහිත අද්විතීය නිර්මාණය</p>
+                            <div class="flex gap-2">
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">කස්ටම්</span>
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">කලාත්මක</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm opacity-75">කස්ටම් එකතුව</span>
+                            <button class="bg-white text-orange-600 px-4 py-2 rounded-lg font-semibold hover:scale-105 transition-all">
+                                විස්තර බලන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Evening Suit -->
+                <div class="portfolio-item suits" data-category="suits">
+                    <div class="bg-gradient-to-br from-indigo-600 to-blue-700 p-8 rounded-2xl text-white h-80 flex flex-col justify-between card-hover">
+                        <div>
+                            <i class="fas fa-star text-4xl mb-4"></i>
+                            <h3 class="text-xl font-bold playfair mb-2">සන්ධ්‍යා ඇඳුම (Tuxedo)</h3>
+                            <p class="text-indigo-100 mb-4">සැටින් ලැපල් සහ බෝ ටයි සහිත Black-tie උත්සව සඳහා පරිපූර්ණයි</p>
+                            <div class="flex gap-2">
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">Tuxedo</span>
+                                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm">සැටින්</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm opacity-75">සන්ධ්‍යා එකතුව</span>
+                            <button class="bg-white text-indigo-600 px-4 py-2 rounded-lg font-semibold hover:scale-105 transition-all">
+                                විස්තර බලන්න
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section (පාරිභෝගික අදහස් කොටස) -->
+    <section id="testimonials" class="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold playfair gradient-text mb-6">අපගේ සේවාදායකයින් පවසන දේ</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    ඔවුන්ගේ සුවිශේෂී අත්දැකීම් පිළිබඳව අපගේ තෘප්තිමත් පාරිභෝගිකයින්ගෙන් අසන්න.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Testimonial 1 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            A
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">අමල් පෙරේරා</h4>
+                            <p class="text-gray-600">ව්‍යාපාරික</p>
+                        </div>
+                    </div>
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 italic">"විශිෂ්ට නිර්මාණශීලීත්වයක්! මගේ මංගල කෝට් එක ඉතාම අනර්ඝයි. අනුරගේ සවිස්තරාත්මකභාවය සහ ගුණාත්මකභාවය අසමසමයි. බෙහෙවින් නිර්දේශ කරමි!"</p>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            S
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">සමන් සිල්වා</h4>
+                            <p class="text-gray-600">ප්‍රධාන විධායක නිලධාරී</p>
+                        </div>
+                    </div>
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 italic">"මුල සිට අවසානය දක්වා වෘත්තීය සේවාවක්. මගේ කස්ටම් සූට් නියමිත මිනුමට ගැලපෙන අතර ගුණාත්මකභාවය ඉහළයි. සෑම රුපියලක්ම වටිනවා!"</p>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            R
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">රුවන් ප්‍රනාන්දු</h4>
+                            <p class="text-gray-600">නීතිඥ</p>
+                        </div>
+                    </div>
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 italic">"කොළඹ හොඳම ටේලර්! ෆිටින් එක නියමයි, සේවාව විශිෂ්ටයි. මම දැන් අවුරුදු 3ක් තිස්සේ විශ්වාසවන්ත පාරිභෝගිකයෙක්."</p>
+                </div>
+                
+                <!-- Testimonial 4 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            K
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">කසුන් රාජපක්ෂ</h4>
+                            <p class="text-gray-600">වෛද්‍ය</p>
+                        </div>
+                    </div>
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 italic">"විස්මිත අත්දැකීමක්! උපදේශනය ඉතා සවිස්තරාත්මක වූ අතර අවසන් නිමැවුම මගේ බලාපොරොත්තු ඉක්මවා ගියා. සැබෑ නිර්මාණශීලීත්වයක්!"</p>
+                </div>
+                
+                <!-- Testimonial 5 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            N
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">නුවන් වික්‍රමසිංහ</h4>
+                            <p class="text-gray-600">ඉංජිනේරු</p>
+                        </div>
+                    </div>
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 italic">"ඉක්මන් සේවාව සහ විශිෂ්ට ගුණාත්මකභාවය. වෙනස්කම් ඉතා නිවැරදිව කර තිබුණා. ඉහළ වෘත්තීය සේවාවක්!"</p>
+                </div>
+                
+                <!-- Testimonial 6 -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            D
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">ඩිල්ෂාන් ගමගේ</h4>
+                            <p class="text-gray-600">ගෘහ නිර්මාණ ශිල්පී</p>
+                        </div>
+                    </div>
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 italic">"විස්තර කෙරෙහි විශිෂ්ට අවධානයක් සහ පාරිභෝගික සේවාවක්. මගේ කාර්යාලීය කමිස නියමිත මිනුමට සකසා ඇත. අනිවාර්යයෙන්ම නැවත එනවා!"</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section (අප ගැන කොටස) -->
+    <section id="about" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="text-5xl font-bold playfair gradient-text mb-8">අනුර ටේලර් ගැන</h2>
+                    <div class="space-y-6 text-lg text-gray-600">
+                        <p>
+                            ඇඳුම් මැසීමේ කර්මාන්තයේ වසර 15 කට වැඩි කැපවූ සේවාවක් සමඟ, අනුර ටේලර් ශ්‍රී ලංකාවේ සුඛෝපභෝගී කස්ටම් ඇඳුම් සඳහා ප්‍රමුඛතම ස්ථානයක් බවට පත්ව ඇත. අපගේ ගමන ආරම්භ වූයේ සරල දැක්මකින්: පරිපූර්ණව ගැලපෙනවා පමණක් නොව, එය අඳින සෑම පුද්ගලයෙකුගේම අනන්‍ය කතාව පවසන ඇඳුම් නිර්මාණය කිරීමයි.
+                        </p>
+                        <p>
+                            අපගේ ප්‍රවීණ ශිල්පීන් කාලානුරූපී සාම්ප්‍රදායික ශිල්පීය ක්‍රම නවීන නිරවද්‍යතාව සහ නවෝත්පාදනය සමඟ ඒකාබද්ධ කරයි. සෑම මැස්මක්ම අරමුණක් ඇතිව යොදනු ලබන අතර, සෑම මිනුමක්ම සැලකිල්ලෙන් ගනු ලබන අතර, සෑම විස්තරයක්ම ඉහළම ගුණාත්මක භාවයෙන් හා මෝස්තරයෙන් යුතුව නිර්මාණය කෙරේ.
+                        </p>
+                        <p>
+                            විවාහ දිනයේ පරිපූර්ණත්වයේ සිට කාර්යාලයේ විශ්වාසය දක්වා, අපගේ සේවාදායකයින්ට ඔවුන්ගේ උපරිම පෙනුම සහ හැඟීම ලබා දෙන ඇඳුම් නිර්මාණය කිරීමට අපි විශේෂඥයෝ වෙමු. විශිෂ්ටත්වය සඳහා අපගේ කැපවීම, ව්‍යාපාරික නායකයින්, ප්‍රසිද්ධ පුද්ගලයින් සහ සැබෑ නිර්මාණශීලීත්වය අගය කරන 2,500 කට අධික තෘප්තිමත් පාරිභෝගිකයින්ගේ විශ්වාසය දිනාගෙන ඇත.
+                        </p>
+                    </div>
+                    
+                    <div class="mt-8 grid grid-cols-2 gap-8">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold gradient-gold mb-2">15+</div>
+                            <div class="text-gray-600">වසරක පළපුරුද්ද</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold gradient-gold mb-2">2500+</div>
+                            <div class="text-gray-600">සතුටු සේවාදායකයින්</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold gradient-gold mb-2">98%</div>
+                            <div class="text-gray-600">තෘප්තිමත්භාවය</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold gradient-gold mb-2">150+</div>
+                            <div class="text-gray-600">මංගල කෝට්</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <button class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold hover:scale-105 transition-all glow">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            උපදේශනයක් වෙන්කරවා ගන්න
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <!-- Master Tailor Illustration (ප්‍රධාන ශිල්පියාගේ රූප සටහන) -->
+                    <div class="bg-gradient-to-br from-blue-100 to-purple-100 p-12 rounded-3xl">
+                        <div class="text-center">
+                            <div class="w-48 h-48 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-8">
+                                <i class="fas fa-cut text-6xl text-white"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold playfair mb-4">ප්‍රධාන ශිල්පියා</h3>
+                            <p class="text-gray-600 mb-6">සුඛෝපභෝගී ඇඳුම් නිර්මාණයේ වසර 15+ ක පළපුරුද්දක් ඇති ප්‍රවීණ මැහුම් ශිල්පියා</p>
+                            
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="bg-white p-4 rounded-lg">
+                                    <i class="fas fa-award text-blue-500 mb-2"></i>
+                                    <div class="font-semibold">සහතිකලත් ශිල්පී</div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <i class="fas fa-medal text-purple-500 mb-2"></i>
+                                    <div class="font-semibold">සම්මානලාභී</div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <i class="fas fa-handshake text-green-500 mb-2"></i>
+                                    <div class="font-semibold">විශ්වාසනීය සේවය</div>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg">
+                                    <i class="fas fa-heart text-red-500 mb-2"></i>
+                                    <div class="font-semibold">කැපවීමෙන් වැඩ</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section (සම්බන්ධතා කොටස) -->
+    <section id="contact" class="py-20 bg-gradient-to-br from-gray-900 to-blue-900 text-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold playfair mb-6">අප හා සම්බන්ධ වන්න</h2>
+                <p class="text-xl opacity-90 max-w-3xl mx-auto">
+                    ඔබගේ සිහින ඇඳුම නිර්මාණය කිරීමට සූදානම්ද? උපදේශනයක් සඳහා අප හා සම්බන්ධ වන්න.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                <!-- Contact Info (සම්බන්ධතා තොරතුරු) -->
+                <div class="space-y-8">
+                    <h3 class="text-3xl font-bold playfair mb-8">අපගේ මැහුම්හලට පැමිණෙන්න</h3>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-map-marker-alt text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">ලිපිනය</h4>
+                                <p class="opacity-75">නො. 123, ප්‍රධාන පාර<br>කොළඹ 07, ශ්‍රී ලංකාව</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-teal-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-phone text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">දුරකථන</h4>
+                                <p class="opacity-75">+94 77 123 4567<br>+94 11 234 5678</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-envelope text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">ඊමේල්</h4>
+                                <p class="opacity-75">info@anuratailor.lk<br>appointments@anuratailor.lk</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-red-400 to-pink-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">සේවා කාලය</h4>
+                                <p class="opacity-75">සඳුදා - සෙනසුරාදා: පෙ.ව. 9:00 - ප.ව. 7:00<br>ඉරිදා: පෙ.ව. 10:00 - ප.ව. 4:00</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Social Links (සමාජ මාධ්‍ය සබැඳි) -->
+                    <div class="pt-8">
+                        <h4 class="font-semibold mb-4">අපව අනුගමනය කරන්න</h4>
+                        <div class="flex space-x-4">
+                            <a href="#" class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center hover:scale-110 transition-all"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="w-12 h-12 bg-pink-600 rounded-lg flex items-center justify-center hover:scale-110 transition-all"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center hover:scale-110 transition-all"><i class="fab fa-whatsapp"></i></a>
+                            <a href="#" class="w-12 h-12 bg-blue-400 rounded-lg flex items-center justify-center hover:scale-110 transition-all"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Form (සම්බන්ධතා පෝරමය) -->
+                <div class="glass p-8 rounded-3xl">
+                    <h3 class="text-2xl font-bold playfair mb-6">අපට පණිවිඩයක් එවන්න</h3>
+                    
+                    <form id="contact-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">සම්පූර්ණ නම *</label>
+                                <input type="text" name="name" required class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg px-4 py-3 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400" placeholder="ඔබගේ සම්පූර්ණ නම">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2">දුරකථන අංකය *</label>
+                                <input type="tel" name="phone" required class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg px-4 py-3 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400" placeholder="+94 77 123 4567">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">ඊමේල් ලිපිනය</label>
+                            <input type="email" name="email" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg px-4 py-3 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400" placeholder="your@email.com">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">අවශ්‍ය සේවාව</label>
+                            <select name="service" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-gray-800">
+                                <option class="text-gray-800">සේවාවක් තෝරන්න</option>
+                                <option class="text-gray-800">මංගල කෝට්</option>
+                                <option class="text-gray-800">සූට් සහ බ්ලේසර්</option>
+                                <option class="text-gray-800">කාර්යාලීය කමිස</option>
+                                <option class="text-gray-800">වෙනත්</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold mb-2">ඔබගේ පණිවිඩය</label>
+                            <textarea name="message" rows="4" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg px-4 py-3 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400" placeholder="ඔබට දැනගැනීමට අවශ්‍ය දේ මෙහි ටයිප් කරන්න..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <button type="submit" class="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold px-8 py-4 rounded-full hover:scale-105 transition-all duration-300 glow">
+                                පණිවිඩය යවන්න
+                            </button>
+                        </div>
+                    </form>
+                    <div id="form-status" class="mt-4 text-center"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section (පාදකය) -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p>&copy; 2024 අනුර ටේලර්. සියලුම හිමිකම් ඇවිරිණි.</p>
+            <p class="text-sm opacity-75 mt-2">ශ්‍රී ලංකාවේ ආදරයෙන් නිර්මාණය කරන ලදී.</p>
+        </div>
+    </footer>
+    
+    <script>
+        // JavaScript code remains in English for functionality
+        // සිංහල කමෙන්ට්ස් එකතු කර ඇත
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation Bar Scroll Effect (Navigation Bar එක scroll කිරීමේදී වෙනස් වීම)
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.remove('glass');
+                    navbar.classList.add('glass-dark', 'py-2');
+                    navbar.classList.remove('py-4');
+                } else {
+                    navbar.classList.add('glass');
+                    navbar.classList.remove('glass-dark', 'py-2');
+                    navbar.classList.add('py-4');
+                }
+            });
+
+            // Mobile Menu Toggle (ජංගම දුරකථන මෙනුව ක්‍රියාත්මක කිරීම)
+            const mobileMenuButton = document.getElementById('mobile-menu');
+            const mobileNav = document.getElementById('mobile-nav');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileNav.classList.toggle('translate-x-full');
+            });
+
+            mobileNavLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileNav.classList.add('translate-x-full');
+                });
+            });
+
+            // GSAP Animations (GSAP සජීවීකරණ)
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Hero Section Animation (ප්‍රධාන කොටසේ සජීවීකරණය)
+            gsap.from('.hero-btn', {
+                scrollTrigger: {
+                    trigger: '#home',
+                    start: 'top center',
+                },
+                opacity: 0,
+                y: 50,
+                stagger: 0.2,
+                duration: 1,
+                ease: 'power3.out'
+            });
+
+            // Counter Animation (සංඛ්‍යා ගණනය වීමේ සජීවීකරණය)
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                gsap.from(counter, {
+                    textContent: 0,
+                    duration: 2,
+                    ease: 'power1.inOut',
+                    snap: { textContent: 1 },
+                    scrollTrigger: {
+                        trigger: counter,
+                        start: 'top 80%',
+                    },
+                    onUpdate: function() {
+                        counter.innerHTML = Math.ceil(this.targets()[0].textContent);
+                    },
+                    onComplete: function() {
+                        counter.innerHTML = counter.dataset.target;
+                    }
+                });
+                
+                // GSAP 3.11+ method for direct number counting
+                const target = +counter.dataset.target;
+                gsap.to(counter, {
+                    innerText: target,
+                    duration: 2,
+                    snap: { innerText: 1 },
+                    scrollTrigger: {
+                        trigger: counter,
+                        start: 'top 80%',
+                    }
+                });
+            });
+
+            // Services Section Card Animation (සේවා කොටසේ කාඩ්පත් සජීවීකරණය)
+            gsap.from('.service-card', {
+                scrollTrigger: {
+                    trigger: '#services',
+                    start: 'top center',
+                },
+                opacity: 0,
+                y: 50,
+                stagger: 0.2,
+                duration: 1,
+                ease: 'power3.out'
+            });
+
+            // Process Section Step Animation (ක්‍රියාවලි කොටසේ පියවර සජීවීකරණය)
+            const processSteps = document.querySelectorAll('.process-step');
+            processSteps.forEach(step => {
+                gsap.from(step.children, {
+                    scrollTrigger: {
+                        trigger: step,
+                        start: 'top 80%',
+                        toggleActions: 'play none none none'
+                    },
+                    opacity: 0,
+                    x: (index) => (index === 0 ? -100 : (index === 2 ? 100 : 0)),
+                    y: (index) => (index === 1 ? 50 : 0),
+                    stagger: 0.1,
+                    duration: 1,
+                    ease: 'power3.out'
+                });
+            });
+
+            // Portfolio Filter (නිර්මාණ එකතුව ෆිල්ටර් කිරීමේ ක්‍රියාවලිය)
+            const filterButtons = document.querySelectorAll('.portfolio-filter');
+            const portfolioItems = document.querySelectorAll('.portfolio-item');
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Active button style
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('active', 'bg-gradient-to-r', 'from-blue-600', 'to-purple-600', 'text-white');
+                        btn.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    button.classList.add('active', 'bg-gradient-to-r', 'from-blue-600', 'to-purple-600', 'text-white');
+                    button.classList.remove('bg-gray-200', 'text-gray-700');
+                    
+                    const filter = button.dataset.filter;
+                    
+                    portfolioItems.forEach(item => {
+                        item.style.transition = 'all 0.4s ease';
+                        item.style.transform = 'scale(0.9)';
+                        item.style.opacity = '0';
+                        item.style.display = 'none';
+
+                        setTimeout(() => {
+                            if (filter === 'all' || item.dataset.category === filter) {
+                                item.style.display = 'block';
+                                setTimeout(() => {
+                                    item.style.transform = 'scale(1)';
+                                    item.style.opacity = '1';
+                                }, 50);
+                            }
+                        }, 400);
+                    });
+                });
+            });
+
+            // Testimonials Animation (පාරිභෝගික අදහස් සජීවීකරණය)
+            gsap.from('.testimonial-card', {
+                scrollTrigger: {
+                    trigger: '#testimonials',
+                    start: 'top 70%',
+                },
+                opacity: 0,
+                y: 50,
+                stagger: 0.15,
+                duration: 0.8,
+                ease: 'power2.out'
+            });
+
+            // Smooth scrolling for nav links (මෙනු සබැඳි සඳහා සුමටව ස්ක්‍රෝල් වීම)
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+            
+            // Contact Form Submission (සම්බන්ධතා පෝරමය යැවීම)
+            const contactForm = document.getElementById('contact-form');
+            const formStatus = document.getElementById('form-status');
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                formStatus.innerHTML = '<div class="spinner mx-auto"></div><p class="mt-2">පණිවිඩය යවමින්...</p>';
+                
+                // Simulate form submission
+                setTimeout(() => {
+                    formStatus.innerHTML = '<p class="text-green-400">ඔබගේ පණිවිඩය සාර්ථකව ලැබුණි. අපි ඔබව ඉක්මනින් සම්බන්ධ කර ගන්නෙමු!</p>';
+                    contactForm.reset();
+                }, 2000);
+            });
+        });
+
+        // p5.js background animation (p5.js පසුබිම් සජීවීකරණය)
+        let particles = [];
+        function setupP5() {
+            let canvas = createCanvas(windowWidth, windowHeight);
+            canvas.parent('p5-canvas');
+            for (let i = 0; i < 100; i++) {
+                particles.push(new Particle());
+            }
+        }
+        function drawP5() {
+            clear();
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].createParticle();
+                particles[i].moveParticle();
+                particles[i].joinParticles(particles.slice(i));
+            }
+        }
+        class Particle {
+            constructor() {
+                this.x = random(0, width);
+                this.y = random(0, height);
+                this.r = random(1, 3);
+                this.xSpeed = random(-1, 1);
+                this.ySpeed = random(-0.5, 0.5);
+            }
+            createParticle() {
+                noStroke();
+                fill('rgba(255,255,255,0.2)');
+                circle(this.x, this.y, this.r);
+            }
+            moveParticle() {
+                if (this.x < 0 || this.x > width) this.xSpeed *= -1;
+                if (this.y < 0 || this.y > height) this.ySpeed *= -1;
+                this.x += this.xSpeed;
+                this.y += this.ySpeed;
+            }
+            joinParticles(particles) {
+                particles.forEach(element => {
+                    let dis = dist(this.x, this.y, element.x, element.y);
+                    if (dis < 85) {
+                        stroke('rgba(255,255,255,0.08)');
+                        line(this.x, this.y, element.x, element.y);
+                    }
+                });
+            }
+        }
+        // Assign p5.js functions to the global scope
+        window.setup = setupP5;
+        window.draw = drawP5;
+
+        // Three.js background animation (Three.js පසුබිම් සජීවීකරණය)
+        let scene, camera, renderer, cloth;
+        function initThree() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 10000);
+            camera.position.z = 1000;
+            
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('threejs-canvas'), alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            const D = 8;
+            const clothGeometry = new THREE.PlaneGeometry(300, 300, D, D);
+            const clothMaterial = new THREE.MeshPhongMaterial({
+                color: 0xaa88ff,
+                specular: 0x030303,
+                wireframe: true,
+                opacity: 0.1,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+            
+            cloth = new THREE.Mesh(clothGeometry, clothMaterial);
+            cloth.position.set(0, 0, -200);
+            scene.add(cloth);
+
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(1, 1, 1);
+            scene.add(light);
+        }
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            const time = Date.now() * 0.0005;
+            cloth.rotation.x += 0.005;
+            cloth.rotation.y += 0.002;
+            
+            const vertices = cloth.geometry.attributes.position;
+            for (let i = 0, l = vertices.count; i < l; i++) {
+                vertices.setZ(i, Math.sin(i / 5 + (time + i / 7)) * 10);
+            }
+            vertices.needsUpdate = true;
+            
+            renderer.render(scene, camera);
+        }
+
+        initThree();
+        animateThree();
+
+        window.addEventListener('resize', () => {
+            // P5 Resize
+            resizeCanvas(windowWidth, windowHeight);
+            
+            // Three.js Resize
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>
+```
